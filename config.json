@@ -1,0 +1,5 @@
+{
+    "defaultTransitionMS": 3000,
+    "bridgeMaxLIOPS": 7,
+    "defaultBrightness": 255
+}
