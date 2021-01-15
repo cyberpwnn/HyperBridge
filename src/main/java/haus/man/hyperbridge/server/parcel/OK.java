@@ -1,0 +1,15 @@
+package haus.man.hyperbridge.server.parcel;
+
+import ninja.bytecode.shuriken.web.Parcel;
+import ninja.bytecode.shuriken.web.Parcelable;
+
+public class Error extends Parcel {
+    public Error() {
+        super("error");
+    }
+
+    @Override
+    public Parcelable respond() {
+        return null;
+    }
+}

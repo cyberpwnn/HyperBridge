@@ -6,24 +6,36 @@ import java.io.IOException;
 import com.google.gson.Gson;
 
 import lombok.Data;
-import ninja.bytecode.shuriken.collections.KList;
 import ninja.bytecode.shuriken.io.IO;
 import ninja.bytecode.shuriken.json.JSONObject;
 import ninja.bytecode.shuriken.logging.L;
 
 @Data
-public class HyperState
+public class HyperConfig
 {
-	private KList<HyperBridgeState> bridges;
+	private static HyperConfig cfg;
+	private int bridgeMaxLIOPS = 4;
+	private int defaultTransitionMS = 10000;
+	private int defaultBrightness = 255;
 
-	public HyperState()
+	public static HyperConfig get()
 	{
-		bridges = new KList<>();
+		if(cfg == null)
+		{
+			cfg = HyperConfig.load();
+		}
+
+		return cfg;
+	}
+
+	public HyperConfig()
+	{
+
 	}
 
 	public void save()
 	{
-		File file = new File("state.json");
+		File file = new File("config.json");
 		try
 		{
 			file.getParentFile().mkdirs();
@@ -45,9 +57,9 @@ public class HyperState
 		}
 	}
 
-	public static HyperState load()
+	public static HyperConfig load()
 	{
-		File file = new File("state.json");
+		File file = new File("config.json");
 		try
 		{
 			file.getParentFile().mkdirs();
@@ -62,7 +74,7 @@ public class HyperState
 		{
 			try
 			{
-				return new Gson().fromJson(IO.readAll(file), HyperState.class);
+				return new Gson().fromJson(IO.readAll(file), HyperConfig.class);
 			}
 
 			catch(Throwable e)
@@ -71,6 +83,11 @@ public class HyperState
 			}
 		}
 
-		return new HyperState();
+		else
+		{
+			new HyperConfig().save();
+		}
+
+		return new HyperConfig();
 	}
 }

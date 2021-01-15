@@ -10,7 +10,10 @@ import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
 import com.philips.lighting.model.PHLight;
 
+import haus.man.hyperbridge.api.ILight;
+import haus.man.hyperbridge.api.ILightHouse;
 import lombok.Data;
+import ninja.bytecode.shuriken.collections.KList;
 import ninja.bytecode.shuriken.collections.KMap;
 import ninja.bytecode.shuriken.execution.J;
 import ninja.bytecode.shuriken.execution.Looper;
@@ -18,15 +21,17 @@ import ninja.bytecode.shuriken.logging.L;
 import ninja.bytecode.shuriken.math.M;
 
 @Data
-public class HyperBridgeServer implements PHSDKListener
+public class HyperBridgeServer implements PHSDKListener, ILightHouse
 {
 	private PHHueSDK sdk;
 	private ConsoleManager console;
 	private KMap<String, HyperNode> nodes = new KMap<>();
-	private KMap<String, HyperLight> lights = new KMap<>();
+	private final KMap<String, HyperLight> lights = new KMap<>();
 	private HyperState state = HyperState.load();
+	private KList<Runnable> queue = new KList<>();
 	private boolean dirtyState = false;
 	private Looper saver;
+	private Looper ticker;
 	private boolean closed = false;
 
 	public HyperBridgeServer()
@@ -45,14 +50,48 @@ public class HyperBridgeServer implements PHSDKListener
 					L.v("Saved HyperState");
 				}
 
-				return 30000;
+				return 60000;
+			}
+		};
+		ticker = new Looper()
+		{
+			@Override
+			protected long loop()
+			{
+				synchronized (lights)
+				{
+					int m = 0;
+
+					for(HyperLight i : lights.v())
+					{
+						if(i.push())
+						{
+							m++;
+						}
+
+						if(m >= Math.max(1, HyperConfig.get().getBridgeMaxLIOPS()/4))
+						{
+							break;
+						}
+					}
+				}
+
+				return 250;
 			}
 		};
 
 		saver.start();
+		ticker.start();
 		console = new ConsoleManager();
 		L.i("Looking for new Bridges");
 		connectToBridges();
+	}
+
+	public KList<ILight> getAllLights()
+	{
+		KList<ILight> k = new KList<>();
+		k.addAll(getLights().values());
+		return k;
 	}
 
 	public double getSystemWattage()
@@ -94,9 +133,12 @@ public class HyperBridgeServer implements PHSDKListener
 			state.save();
 		}
 
-		for(HyperLight i : lights.v())
+		synchronized (lights)
 		{
-			i.save(true);
+			for(HyperLight i : lights.v())
+			{
+				i.save(true);
+			}
 		}
 
 		sdk.getNotificationManager().unregisterSDKListener(this);
@@ -104,47 +146,50 @@ public class HyperBridgeServer implements PHSDKListener
 
 	public void refresh()
 	{
-		KMap<String, HyperLight> oldLights = lights.copy();
-		lights.clear();
-
-		for(HyperNode i : nodes.v())
+		synchronized (lights)
 		{
-			for(PHLight j : i.getBridge().getResourceCache().getAllLights())
+			KMap<String, HyperLight> oldLights = lights.copy();
+			lights.clear();
+
+			for(HyperNode i : nodes.v())
 			{
-				HyperLight light = new HyperLight(i, j);
-				lights.put(light.getHyperID(), light);
+				for(PHLight j : i.getBridge().getResourceCache().getAllLights())
+				{
+					HyperLight light = new HyperLight(i, j);
+					lights.put(light.getHyperID(), light);
+				}
+
+				rememberBridge(i.getBridge());
 			}
 
-			rememberBridge(i.getBridge());
-		}
+			L.flush();
 
-		L.flush();
+			int removed = 0;
+			int added = 0;
 
-		int removed = 0;
-		int added = 0;
-
-		for(String i : lights.k())
-		{
-			if(!oldLights.containsKey(i))
+			for(String i : lights.k())
 			{
-				added++;
+				if(!oldLights.containsKey(i))
+				{
+					added++;
+				}
 			}
-		}
 
-		for(String i : oldLights.k())
-		{
-			if(!lights.containsKey(i))
+			for(String i : oldLights.k())
 			{
-				removed++;
+				if(!lights.containsKey(i))
+				{
+					removed++;
+				}
 			}
-		}
 
-		L.i("Lost " + removed + " lights (bridge disconnect)");
-		L.i("Discovered " + added + " more lights (bridge connect)");
+			L.i("Lost " + removed + " lights (bridge disconnect)");
+			L.i("Discovered " + added + " more lights (bridge connect)");
 
-		if(added > 0 || removed > 0)
-		{
-			L.i("Connected to " + lights.size() + " lights across " + nodes.size() + " bridges");
+			if(added > 0 || removed > 0)
+			{
+				L.i("Connected to " + lights.size() + " lights across " + nodes.size() + " bridges");
+			}
 		}
 	}
 
@@ -311,5 +356,10 @@ public class HyperBridgeServer implements PHSDKListener
 		}
 
 		refresh();
+	}
+
+	@Override
+	public int getBridgeCount() {
+		return nodes.size();
 	}
 }
