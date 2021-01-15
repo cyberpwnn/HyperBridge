@@ -1,11 +1,19 @@
 package haus.man.hyperbridge.server.parcel;
 
+import ninja.bytecode.shuriken.collections.KList;
 import ninja.bytecode.shuriken.web.Parcel;
 import ninja.bytecode.shuriken.web.Parcelable;
 
-public class SendLight extends Parcel {
-    public SendLight() {
-        super("sendlight");
+public class SendLights extends Parcel {
+    private KList<String> lights;
+
+    public SendLights(KList<String> lights) {
+        super("sendlights");
+        this.lights = lights;
+    }
+
+    public SendLights() {
+        this(new KList<>());
     }
 
     @Override

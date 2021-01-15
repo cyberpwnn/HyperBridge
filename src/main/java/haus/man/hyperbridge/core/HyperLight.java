@@ -1,4 +1,4 @@
-package haus.man.hyperbridge;
+package haus.man.hyperbridge.core;
 
 import java.awt.Color;
 import java.io.File;
@@ -172,6 +172,11 @@ public class HyperLight implements ILight
 	@Override
 	public void setColor(Color color, double brightness, int transitionMS) {
 		color(color, (int) (brightness * 255D), transitionMS);
+	}
+
+	@Override
+	public String getName() {
+		return getLight().getName();
 	}
 
 	public HyperLight color(Color c)

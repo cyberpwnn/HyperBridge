@@ -1,5 +1,6 @@
 package haus.man.hyperbridge;
 
+import haus.man.hyperbridge.core.HyperBridgeServer;
 import ninja.bytecode.shuriken.logging.L;
 
 public class HyperBridge

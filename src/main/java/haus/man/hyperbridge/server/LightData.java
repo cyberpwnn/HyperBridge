@@ -1,9 +1,10 @@
 package haus.man.hyperbridge.server;
 
+import haus.man.hyperbridge.api.ILight;
 import lombok.Builder;
 
 @Builder
-public class ILightData {
+public class LightData {
     private String name;
     private String id;
     private int r;
@@ -13,5 +14,17 @@ public class ILightData {
     private double watts;
     private double wattHours;
 
-    public ILightData 
+    public static LightData from(ILight l)
+    {
+        return LightData.builder()
+                .r(l.getColor().getRed())
+                .g(l.getColor().getGreen())
+                .b(l.getColor().getBlue())
+                .a((int) (l.getBrightness() * 255))
+                .watts(l.getWattage())
+                .wattHours(l.getTotalWattHours())
+                .id(l.getId())
+                .name(l.getName())
+                .build();
+    }
 }

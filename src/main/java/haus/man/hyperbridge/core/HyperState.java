@@ -1,4 +1,4 @@
-package haus.man.hyperbridge;
+package haus.man.hyperbridge.core;
 
 import java.io.File;
 import java.io.IOException;

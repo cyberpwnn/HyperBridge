@@ -1,9 +1,10 @@
-package haus.man.hyperbridge;
+package haus.man.hyperbridge.core;
 
 import java.awt.Color;
 
 import com.philips.lighting.model.PHLight;
 
+import haus.man.hyperbridge.HyperBridge;
 import ninja.bytecode.shuriken.collections.KList;
 import ninja.bytecode.shuriken.collections.KMap;
 import ninja.bytecode.shuriken.execution.J;

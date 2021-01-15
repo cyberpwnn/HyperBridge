@@ -1,4 +1,4 @@
-package haus.man.hyperbridge;
+package haus.man.hyperbridge.core;
 
 import java.util.List;
 
@@ -12,6 +12,7 @@ import com.philips.lighting.model.PHLight;
 
 import haus.man.hyperbridge.api.ILight;
 import haus.man.hyperbridge.api.ILightHouse;
+import haus.man.hyperbridge.server.HyperWebserver;
 import lombok.Data;
 import ninja.bytecode.shuriken.collections.KList;
 import ninja.bytecode.shuriken.collections.KMap;
@@ -33,9 +34,11 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 	private Looper saver;
 	private Looper ticker;
 	private boolean closed = false;
+	private HyperWebserver ws;
 
 	public HyperBridgeServer()
 	{
+		J.a(() -> ws = new HyperWebserver());
 		sdk = PHHueSDK.create();
 		sdk.getNotificationManager().registerSDKListener(this);
 		saver = new Looper()

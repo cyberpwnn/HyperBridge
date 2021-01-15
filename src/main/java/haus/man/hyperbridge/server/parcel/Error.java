@@ -3,9 +3,9 @@ package haus.man.hyperbridge.server.parcel;
 import ninja.bytecode.shuriken.web.Parcel;
 import ninja.bytecode.shuriken.web.Parcelable;
 
-public class SetColor extends Parcel {
-    public SetColor() {
-        super("setcolor");
+public class Error extends Parcel {
+    public Error() {
+        super("error");
     }
 
     @Override
