@@ -6,8 +6,7 @@ import ninja.bytecode.shuriken.web.Parcel;
 import ninja.bytecode.shuriken.web.ParcelRequest;
 import ninja.bytecode.shuriken.web.Parcelable;
 
-import java.lang.annotation.Annotation;
-
+@ParcelRequest
 public class GetLights extends Parcel {
     public GetLights() {
         super("getlights");
@@ -15,6 +14,6 @@ public class GetLights extends Parcel {
 
     @Override
     public Parcelable respond() {
-        return new SendLights(ILightHouse.get().getAllLights().convert(ILight::getName));
+        return new SendLights(ILightHouse.get().getAllLights().convert(ILight::getId));
     }
 }

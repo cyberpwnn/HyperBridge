@@ -2,8 +2,10 @@ package haus.man.hyperbridge.server.parcel;
 
 import ninja.bytecode.shuriken.collections.KList;
 import ninja.bytecode.shuriken.web.Parcel;
+import ninja.bytecode.shuriken.web.ParcelResponse;
 import ninja.bytecode.shuriken.web.Parcelable;
 
+@ParcelResponse
 public class SendLights extends Parcel {
     private KList<String> lights;
 

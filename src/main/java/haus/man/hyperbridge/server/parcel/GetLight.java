@@ -4,8 +4,10 @@ import haus.man.hyperbridge.api.ILight;
 import haus.man.hyperbridge.api.ILightHouse;
 import haus.man.hyperbridge.server.LightData;
 import ninja.bytecode.shuriken.web.Parcel;
+import ninja.bytecode.shuriken.web.ParcelRequest;
 import ninja.bytecode.shuriken.web.Parcelable;
 
+@ParcelRequest
 public class GetLight extends Parcel {
     private String id;
 
