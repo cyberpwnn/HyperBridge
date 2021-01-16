@@ -8,6 +8,14 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public interface ILightHouse {
+    public ILightGroup createGroup(String name);
+
+    public void deleteGroup(String id);
+
+    public KList<ILightGroup> getAllGroups();
+
+    public ILightGroup getGroup(String id);
+
     public static ILightHouse get()
     {
         return HyperBridge.server;

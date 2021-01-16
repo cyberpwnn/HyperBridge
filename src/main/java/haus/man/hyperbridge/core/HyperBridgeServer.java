@@ -11,6 +11,7 @@ import com.philips.lighting.model.PHHueParsingError;
 import com.philips.lighting.model.PHLight;
 
 import haus.man.hyperbridge.api.ILight;
+import haus.man.hyperbridge.api.ILightGroup;
 import haus.man.hyperbridge.api.ILightHouse;
 import haus.man.hyperbridge.server.HyperWebserver;
 import lombok.Data;
@@ -88,6 +89,37 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 		console = new ConsoleManager();
 		L.i("Looking for new Bridges");
 		connectToBridges();
+	}
+
+	@Override
+	public ILightGroup createGroup(String name) {
+		HyperGroup g = new HyperGroup();
+		g.setName(name);
+		state.getGroups().add(g);
+		return g;
+	}
+
+	@Override
+	public void deleteGroup(String id) {
+		state.getGroups().removeIf((i) -> i.getId().equals(id));
+	}
+
+	@Override
+	public KList<ILightGroup> getAllGroups() {
+		return state.getGroups().convert((i) -> i);
+	}
+
+	@Override
+	public ILightGroup getGroup(String id) {
+		for(ILightGroup i : getAllGroups())
+		{
+			if(i.getId().equals(id))
+			{
+				return i;
+			}
+		}
+
+		return null;
 	}
 
 	public KList<ILight> getAllLights()

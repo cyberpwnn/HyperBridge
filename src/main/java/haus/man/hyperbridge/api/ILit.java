@@ -4,9 +4,7 @@ import haus.man.hyperbridge.core.HyperConfig;
 
 import java.awt.*;
 
-public interface ILight extends ILit {
-    public String getId();
-
+public interface ILit {
     public Color getColor();
 
     public double getBrightness();
@@ -33,10 +31,12 @@ public interface ILight extends ILit {
         setColor(Color.getHSBColor(hsb[0], (float) Math.min(1D, Math.max(hsb[1] + percent, 0D)), hsb[2]), getBrightness());
     }
 
-    public default void changeBrightness(double addPercent)
+    public default void changeBrightness(double percent)
     {
-        setBrightness(Math.min(1D, Math.max(getBrightness() + addPercent, 0D)));
+        setBrightness(Math.min(1D, Math.max(getBrightness() + percent, 0D)));
     }
+
+    public void forceUpdate();
 
     public default void setBrightness(double brightness)
     {
@@ -59,6 +59,4 @@ public interface ILight extends ILit {
     {
         setColor(color, HyperConfig.get().getDefaultBrightness());
     }
-
-    String getName();
 }

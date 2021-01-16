@@ -15,10 +15,12 @@ import ninja.bytecode.shuriken.logging.L;
 public class HyperState
 {
 	private KList<HyperBridgeState> bridges;
+	private KList<HyperGroup> groups;
 
 	public HyperState()
 	{
 		bridges = new KList<>();
+		groups = new KList<>();
 	}
 
 	public void save()

@@ -24,6 +24,11 @@ public class HyperWebserver
                 .addParcelables(SetColor.class)
                 .addParcelables(SendLights.class, SendLight.class)
                 .addParcelables(GetPower.class, SendPower.class)
+                .addParcelables(Ping.class, Pong.class)
+                .addParcelables(AddLightToGroup.class, RemoveLightFromGroup.class)
+                .addParcelables(RemoveGroup.class, SendGroup.class)
+                .addParcelables(GetGroups.class, SendGroups.class)
+                .addParcelables(GetGroup.class)
                 .start();
     }
 }

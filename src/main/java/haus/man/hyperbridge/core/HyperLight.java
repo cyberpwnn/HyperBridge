@@ -165,6 +165,11 @@ public class HyperLight implements ILight
 	}
 
 	@Override
+	public void forceUpdate() {
+		push();
+	}
+
+	@Override
 	public void setColor(Color color, double brightness, int transitionMS) {
 		color(color, (int) (brightness * 255D), transitionMS);
 	}

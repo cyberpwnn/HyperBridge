@@ -1,6 +1,7 @@
 package haus.man.hyperbridge.server.parcel;
 
 import haus.man.hyperbridge.api.ILight;
+import haus.man.hyperbridge.api.ILightGroup;
 import haus.man.hyperbridge.api.ILightHouse;
 import haus.man.hyperbridge.core.HyperLight;
 import ninja.bytecode.shuriken.web.Parcel;
@@ -29,14 +30,28 @@ public class SetColor extends Parcel {
 
         if(light == null)
         {
-            return new Error();
+            ILightGroup group = ILightHouse.get().getGroup(id);
+
+            if(group == null)
+            {
+                return new Error();
+            }
+
+            group.setColor(new Color(r,g,b), a/255D, t);
+
+            if(now)
+            {
+                group.forceUpdate();
+            }
+
+            return new OK();
         }
 
         light.setColor(new Color(r,g,b), a/255D, t);
 
         if(now)
         {
-            ((HyperLight)light).push();
+            light.forceUpdate();
         }
 
         return new OK();
