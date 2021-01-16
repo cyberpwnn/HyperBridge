@@ -37,30 +37,139 @@ class HyperBridge extends StatefulWidget {
 }
 
 class _HyperBridgeState extends State<HyperBridge> {
+  int index = 1;
+
+  Widget lights(BuildContext context) {
+    return Stack(
+      children: [
+        FutureBuilder<List<String>>(
+          future: Network.getGroups(),
+          builder: (context, snap) {
+            if (!snap.hasData) {
+              return Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(Colors.deepPurple),
+                ),
+              );
+            }
+
+            if (snap.data.length == 0) {
+              return Center(
+                child: Text(
+                  "No Groups",
+                  style: TextStyle(fontSize: 24),
+                ),
+              );
+            }
+
+            return GridView.builder(
+              itemCount: snap.data.length,
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 200),
+              itemBuilder: (context, pos) => InkWell(
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  child: FutureBuilder<GroupData>(
+                    future: Network.getGroup(snap.data[pos]),
+                    builder: (context, snap2) {
+                      if (!snap2.hasData) {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation(Colors.deepPurple),
+                          ),
+                        );
+                      }
+
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              snap2.data.name,
+                              style: TextStyle(fontSize: 24),
+                            ),
+                            Text(snap2.data.lights.length.toString() +
+                                " Lights"),
+                            Text(snap2.data.watts.round().toString() + "W"),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            child: FloatingActionButton(
+              child: Icon(Icons.add),
+              tooltip: "Add Group",
+              backgroundColor: Colors.deepPurple,
+              onPressed: () => Network.createGroup("New Group").then((value) =>
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditGroup(value.id)))),
+            ),
+            padding: EdgeInsets.only(right: 14),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget haus(BuildContext context) {
+    return Text("Haus");
+  }
+
+  Widget more(BuildContext context) {
+    return Text("More");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: FutureBuilder<List<String>>(
-      future: Network.getLights(),
-      builder: (context, snap) {
-        if (!snap.hasData) {
-          return Text("LOADING");
-        }
+      body: index == 0
+          ? lights(context)
+          : index == 1
+              ? haus(context)
+              : more(context),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.deepPurple,
+        currentIndex: index,
+        onTap: (m) => setState(() {
+          index = m;
+        }),
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.lightbulb), label: "Lights"),
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Haus"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "More")
+        ],
+      ),
+    );
+  }
+}
 
-        return Padding(
-          padding: EdgeInsets.only(left: 14, right: 14),
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 200,
-            ),
-            itemCount: snap.data.length,
-            itemBuilder: (context, pos) => LightView(
-              id: snap.data[pos],
-            ),
-          ),
-        );
-      },
-    ));
+class EditGroup extends StatefulWidget {
+  final String id;
+
+  EditGroup(this.id);
+
+  @override
+  _EditGroupState createState() => _EditGroupState();
+}
+
+class _EditGroupState extends State<EditGroup> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Text("Editing Group " + widget.id),
+    );
   }
 }
 
@@ -221,7 +330,7 @@ class Network {
       GroupData.fromJSON((await get("$url/getgroup?id=$id"))["group"]);
 
   static Future<GroupData> createGroup(String name) async =>
-      GroupData.fromJSON((await get("$url/creategroup?namez=$name"))["group"]);
+      GroupData.fromJSON((await get("$url/creategroup?name=$name"))["group"]);
 
   static Future<bool> addLightToGroup(String light, String group) async =>
       (await get(
