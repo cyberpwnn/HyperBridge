@@ -28,7 +28,7 @@ public class HyperWebserver
                 .addParcelables(AddLightToGroup.class, RemoveLightFromGroup.class)
                 .addParcelables(RemoveGroup.class, SendGroup.class)
                 .addParcelables(GetGroups.class, SendGroups.class)
-                .addParcelables(GetGroup.class)
+                .addParcelables(GetGroup.class, CreateGroup.class)
                 .start();
     }
 }

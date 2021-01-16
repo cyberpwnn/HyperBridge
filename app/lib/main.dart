@@ -207,8 +207,38 @@ class Network {
     return dartIsTheShittiestLanguageOnThePlanet;
   }
 
+  static Future<List<String>> getGroups() async {
+    List<dynamic> data = ((await get("$url/getgroups"))["groups"]);
+    List<String> dartIsTheShittiestLanguageOnThePlanet = List<String>();
+
+    for (int i = 0; i < data.length; i++) {
+      dartIsTheShittiestLanguageOnThePlanet.add(data[i].toString());
+    }
+
+    return dartIsTheShittiestLanguageOnThePlanet;
+  }
+
   static Future<LightData> getLight(String id) async =>
       LightData.fromJSON((await get("$url/getlight?id=$id"))["light"]);
+
+  static Future<GroupData> getGroup(String id) async =>
+      GroupData.fromJSON((await get("$url/getgroup?id=$id"))["group"]);
+
+  static Future<GroupData> createGroup(String name) async =>
+      GroupData.fromJSON((await get("$url/creategroup?namez=$name"))["group"]);
+
+  static Future<bool> addLightToGroup(String light, String group) async =>
+      (await get(
+          '$url/addlight?d={"light":"$light","group":"$group"}'))["type"] ==
+      "ok";
+
+  static Future<bool> removeLightFromGroup(String light, String group) async =>
+      (await get(
+          '$url/removelight?d={"light":"$light","group":"$group"}'))["type"] ==
+      "ok";
+
+  static Future<bool> removeGroup(String group) async =>
+      (await get('$url/removegroup?id=$group'))["type"] == "ok";
 
   static Future<bool> setColor(String id,
           {int r = 255,
@@ -250,6 +280,33 @@ class LightPower {
   static LightPower fromJSON(Map<String, dynamic> data) => LightPower()
     ..wattage = double.tryParse(data["w"]) ?? 0
     ..wattHours = double.tryParse(data["wh"]) ?? 0;
+}
+
+class GroupData {
+  String name;
+  String id;
+  List<String> lights;
+  double watts;
+  double wattHours;
+
+  GroupData();
+
+  static List<String> convertToStringList(List<dynamic> l) {
+    List<String> v = List<String>();
+
+    for (int i = 0; i < l.length; i++) {
+      v.add(l[i].toString());
+    }
+
+    return v;
+  }
+
+  static GroupData fromJSON(Map<String, dynamic> data) => GroupData()
+    ..name = data["name"]
+    ..id = data["id"]
+    ..lights = convertToStringList(data["ids"])
+    ..watts = double.tryParse(data["watts"].toString()) ?? 0
+    ..wattHours = double.tryParse(data["wattHours"].toString()) ?? 0;
 }
 
 class LightData {
