@@ -23,6 +23,7 @@ public class HyperWebserver
                 .addParcelables(Error.class, OK.class)
                 .addParcelables(SetColor.class)
                 .addParcelables(SendLights.class, SendLight.class)
+                .addParcelables(GetPower.class, SendPower.class)
                 .start();
     }
 }

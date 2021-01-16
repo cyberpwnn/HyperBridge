@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:ui';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:tinycolor/tinycolor.dart';
 
 void main() {
   runApp(MyApp());
@@ -9,105 +14,266 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+          canvasColor: Colors.black,
+          bottomAppBarColor: Colors.black,
+          iconTheme: IconThemeData(
+            color: Colors.white,
+          ),
+          appBarTheme:
+              AppBarTheme(color: Colors.black, shadowColor: Colors.black),
+          primarySwatch: Colors.deepPurple,
+          brightness: Brightness.dark),
+      home: HyperBridge(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HyperBridge extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HyperBridgeState createState() => _HyperBridgeState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HyperBridgeState extends State<HyperBridge> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: FutureBuilder<List<String>>(
+      future: Network.getLights(),
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return Text("LOADING");
+        }
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+        return Padding(
+          padding: EdgeInsets.only(left: 14, right: 14),
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 200,
+            ),
+            itemCount: snap.data.length,
+            itemBuilder: (context, pos) => LightView(
+              id: snap.data[pos],
+            ),
+          ),
+        );
+      },
+    ));
+  }
+}
+
+class LightView extends StatefulWidget {
+  final String id;
+
+  LightView({this.id});
+
+  @override
+  _LightViewState createState() => _LightViewState();
+}
+
+class _LightViewState extends State<LightView> {
+  LightData temp;
+  int last = DateTime.now().millisecondsSinceEpoch;
+
+  Future<LightData> get() async {
+    if (temp != null) {
+      return temp;
+    }
+
+    return Network.getLight(widget.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+    return FutureBuilder<LightData>(
+      future: get(),
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return Container();
+        }
+        temp = null;
+        LightData d = snap.data;
+        int nightlightmode = 60;
+        TinyColor buffer = TinyColor(d.getColor());
+        return Padding(
+          padding: EdgeInsets.all(7),
+          child: InkWell(
+            child: GestureDetector(
+              onPanUpdate: (a) {
+                buffer = buffer.spin(a.delta.dx).saturate(a.delta.dy.toInt());
+                d.r = buffer.color.red;
+                d.g = buffer.color.green;
+                d.b = buffer.color.blue;
+                if (DateTime.now().millisecondsSinceEpoch - last < 250) {
+                  setState(() {
+                    temp = d;
+                  });
+                } else {
+                  last = DateTime.now().millisecondsSinceEpoch;
+                  Network.setColor(d.id,
+                          r: buffer.color.red,
+                          g: buffer.color.green,
+                          b: buffer.color.blue,
+                          a: d.a,
+                          now: true,
+                          ms: 250)
+                      .then((value) => setState(() {}));
+                }
+              },
+              onPanEnd: (b) {
+                Future.delayed(
+                    Duration(milliseconds: 500),
+                    () => Network.setColor(d.id,
+                            r: buffer.color.red,
+                            g: buffer.color.green,
+                            b: buffer.color.blue,
+                            a: d.a,
+                            ms: 1000)
+                        .then((value) => setState(() {})));
+              },
+              child: Container(
+                width: 200,
+                height: 200,
+                child: Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Text(
+                            d.a > nightlightmode ? " \u{e811} " : " \u{f2ab} ",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontFamily: "MaterialIcons",
+                                color: d.getColor(alphaBrightness: true),
+                                fontSize: 45,
+                                height: 1.7,
+                                shadows: <Shadow>[
+                                  Shadow(
+                                    color: d.getColor(alphaBrightness: true),
+                                    blurRadius: lerpDouble(
+                                        0,
+                                        40,
+                                        (d.a > nightlightmode
+                                            ? (d.a.toDouble() / 255.0)
+                                            : (d.a.toDouble() /
+                                                nightlightmode.toDouble()))),
+                                  )
+                                ])),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Text(
+                          d.name,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 24),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+            onTap: () {
+              Network.setColor(d.id,
+                      r: d.r, g: d.g, b: d.b, a: d.a > 60 ? 30 : 255, ms: 250)
+                  .then((value) => setState(() {}));
+            },
+          ),
+        );
+      },
     );
   }
+}
+
+class Network {
+  static String address = "192.168.50.78";
+  static int port = 13369;
+  static String url = "http://$address:$port";
+
+  static Future<LightPower> getPower() async =>
+      LightPower.fromJSON((await get("$url/getpower")));
+
+  static Future<List<String>> getLights() async {
+    List<dynamic> data = ((await get("$url/getlights"))["lights"]);
+    List<String> dartIsTheShittiestLanguageOnThePlanet = List<String>();
+
+    for (int i = 0; i < data.length; i++) {
+      dartIsTheShittiestLanguageOnThePlanet.add(data[i].toString());
+    }
+
+    return dartIsTheShittiestLanguageOnThePlanet;
+  }
+
+  static Future<LightData> getLight(String id) async =>
+      LightData.fromJSON((await get("$url/getlight?id=$id"))["light"]);
+
+  static Future<bool> setColor(String id,
+          {int r = 255,
+          int g = 255,
+          int b = 255,
+          int a = 160,
+          bool now = false,
+          int ms = 1000}) async =>
+      (await get(
+              '$url/setcolor?d={"id":"$id","r":$r,"g":$g,"b":$b,"a":$a,"t":$ms,"now":$now}'))[
+          "type"] ==
+      "ok";
+
+  static Future<Map<String, dynamic>> get(String url) async {
+    try {
+      String s = (await (Dio()
+                ..options = new BaseOptions(responseType: ResponseType.plain))
+              .get(url))
+          .data
+          .toString();
+      print("$url -> $s");
+      return jsonDecode(s);
+    } catch (e) {
+      print(e);
+      Map<String, dynamic> error = Map<String, dynamic>();
+      error["type"] = "error";
+      print("$url -> {'type': 'error'}");
+      return error;
+    }
+  }
+}
+
+class LightPower {
+  double wattage;
+  double wattHours;
+
+  LightPower();
+
+  static LightPower fromJSON(Map<String, dynamic> data) => LightPower()
+    ..wattage = double.tryParse(data["w"]) ?? 0
+    ..wattHours = double.tryParse(data["wh"]) ?? 0;
+}
+
+class LightData {
+  String name;
+  String id;
+  int r;
+  int g;
+  int b;
+  int a;
+  double watts;
+  double wattHours;
+
+  LightData();
+
+  Color getColor({bool alphaBrightness = false}) =>
+      Color.fromARGB(alphaBrightness ? a : 255, r, g, b);
+
+  static LightData fromJSON(Map<String, dynamic> data) => LightData()
+    ..name = data["name"]
+    ..id = data["id"]
+    ..r = int.tryParse(data["r"].toString()) ?? 0
+    ..g = int.tryParse(data["g"].toString()) ?? 0
+    ..b = int.tryParse(data["b"].toString()) ?? 0
+    ..a = int.tryParse(data["a"].toString()) ?? 0
+    ..watts = double.tryParse(data["watts"].toString()) ?? 0
+    ..wattHours = double.tryParse(data["wattHours"].toString()) ?? 0;
 }

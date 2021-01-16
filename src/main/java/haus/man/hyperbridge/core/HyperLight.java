@@ -63,11 +63,6 @@ public class HyperLight implements ILight
 			return false;
 		}
 
-		if(!dirtyLatch.flip())
-		{
-			return false;
-		}
-
 		Color c = new Color(r,g,b);
 		double[] normalizedToOne = new double[3];
 		normalizedToOne[0] = (c.getRed() / 255D);
@@ -156,7 +151,7 @@ public class HyperLight implements ILight
 
 	@Override
 	public double getBrightness() {
-		return b / 255D;
+		return a / 255D;
 	}
 
 	public double getWattage()
