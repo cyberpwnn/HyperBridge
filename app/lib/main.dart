@@ -113,10 +113,8 @@ class _LightViewState extends State<LightView> {
                 } else {
                   last = DateTime.now().millisecondsSinceEpoch;
                   Network.setColor(d.id,
-                          r: buffer.color.red,
-                          g: buffer.color.green,
-                          b: buffer.color.blue,
-                          a: d.a,
+                          color: buffer.color,
+                          brightness: d.a / 255.0,
                           now: true,
                           ms: 250)
                       .then((value) => setState(() {}));
@@ -126,10 +124,8 @@ class _LightViewState extends State<LightView> {
                 Future.delayed(
                     Duration(milliseconds: 500),
                     () => Network.setColor(d.id,
-                            r: buffer.color.red,
-                            g: buffer.color.green,
-                            b: buffer.color.blue,
-                            a: d.a,
+                            color: buffer.color,
+                            brightness: d.a / 255.0,
                             ms: 1000)
                         .then((value) => setState(() {})));
               },
@@ -177,7 +173,7 @@ class _LightViewState extends State<LightView> {
               ),
             ),
             onTap: () {
-              Network.setColor(d.id,
+              Network.setColorRaw(d.id,
                       r: d.r, g: d.g, b: d.b, a: d.a > 60 ? 30 : 255, ms: 250)
                   .then((value) => setState(() {}));
             },
@@ -241,6 +237,18 @@ class Network {
       (await get('$url/removegroup?id=$group'))["type"] == "ok";
 
   static Future<bool> setColor(String id,
+          {Color color = Colors.white54,
+          double brightness = 0.8,
+          bool now = false,
+          int ms = 1000}) =>
+      setColorRaw(id,
+          r: color.red,
+          g: color.green,
+          b: color.blue,
+          a: (brightness * 255).round(),
+          ms: ms);
+
+  static Future<bool> setColorRaw(String id,
           {int r = 255,
           int g = 255,
           int b = 255,
