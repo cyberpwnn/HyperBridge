@@ -67,6 +67,11 @@ class _HyperBridgeState extends State<HyperBridge> {
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                   maxCrossAxisExtent: 200),
               itemBuilder: (context, pos) => InkWell(
+                onTap: () => Navigator.push(
+                        context,
+                        new MaterialPageRoute(
+                            builder: (context) => EditGroup(snap.data[pos])))
+                    .then((value) => setState(() {})),
                 child: Container(
                   width: 200,
                   height: 200,
@@ -110,11 +115,12 @@ class _HyperBridgeState extends State<HyperBridge> {
               child: Icon(Icons.add),
               tooltip: "Add Group",
               backgroundColor: Colors.deepPurple,
-              onPressed: () => Network.createGroup("New Group").then((value) =>
-                  Navigator.push(
+              onPressed: () => Network.createGroup("New Group")
+                  .then((value) => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => EditGroup(value.id)))),
+                          builder: (context) => EditGroup(value.id))))
+                  .then((value) => setState(() {})),
             ),
             padding: EdgeInsets.only(right: 14),
           ),
@@ -165,10 +171,145 @@ class EditGroup extends StatefulWidget {
 }
 
 class _EditGroupState extends State<EditGroup> {
+  TextEditingController tc = new TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<GroupData>(
+      future: Network.getGroup(widget.id),
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(Colors.deepPurple),
+              ),
+            ),
+          );
+        }
+
+        tc.text = snap.data.name;
+
+        return Scaffold(
+          appBar: AppBar(
+            actions: [
+              IconButton(
+                icon: Icon(Icons.add),
+                tooltip: "Add Light",
+                onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => LightPicker()))
+                    .then((value) => Network.addLightToGroup(value, widget.id)
+                        .then((value) => setState(() {}))),
+              )
+            ],
+            title: TextField(
+              controller: tc,
+              onSubmitted: (v) => Network.setGroupName(widget.id, v),
+              onChanged: (v) => Network.setGroupName(widget.id, v),
+            ),
+          ),
+          body: GridView.builder(
+            itemCount: snap.data.lights.length,
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 200),
+            itemBuilder: (context, pos) => InkWell(
+              onTap: () {},
+              child: Container(
+                width: 200,
+                height: 200,
+                child: FutureBuilder<LightData>(
+                  future: Network.getLight(snap.data.lights[pos]),
+                  builder: (context, snap2) {
+                    if (!snap2.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation(Colors.deepPurple),
+                        ),
+                      );
+                    }
+
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            snap2.data.name,
+                            style: TextStyle(fontSize: 24),
+                          ),
+                          Text(snap2.data.watts.round().toString() + "W"),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class LightPicker extends StatefulWidget {
+  @override
+  _LightPickerState createState() => _LightPickerState();
+}
+
+class _LightPickerState extends State<LightPicker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Text("Editing Group " + widget.id),
+      body: FutureBuilder<List<String>>(
+        future: Network.getLights(),
+        builder: (context, snp) {
+          if (!snp.hasData) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(Colors.deepPurple),
+              ),
+            );
+          }
+
+          return GridView.builder(
+            itemCount: snp.data.length,
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 200),
+            itemBuilder: (context, pos) => InkWell(
+              onTap: () => Navigator.pop(context, snp.data[pos]),
+              child: Container(
+                width: 200,
+                height: 200,
+                child: FutureBuilder<LightData>(
+                  future: Network.getLight(snp.data[pos]),
+                  builder: (context, snap2) {
+                    if (!snap2.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation(Colors.deepPurple),
+                        ),
+                      );
+                    }
+
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            snap2.data.name,
+                            style: TextStyle(fontSize: 24),
+                          ),
+                          Text(snap2.data.watts.round().toString() + "W"),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -340,6 +481,10 @@ class Network {
   static Future<bool> removeLightFromGroup(String light, String group) async =>
       (await get(
           '$url/removelight?d={"light":"$light","group":"$group"}'))["type"] ==
+      "ok";
+
+  static Future<bool> setGroupName(String id, String name) async =>
+      (await get('$url/setgroupname?d={"id":"$id","name":"$name"}'))["type"] ==
       "ok";
 
   static Future<bool> removeGroup(String group) async =>

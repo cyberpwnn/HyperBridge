@@ -29,6 +29,7 @@ public class HyperWebserver
                 .addParcelables(RemoveGroup.class, SendGroup.class)
                 .addParcelables(GetGroups.class, SendGroups.class)
                 .addParcelables(GetGroup.class, CreateGroup.class)
+                .addParcelables(SetGroupName.class)
                 .start();
     }
 }
