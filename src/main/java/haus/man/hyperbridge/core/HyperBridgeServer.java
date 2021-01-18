@@ -31,7 +31,6 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 	private final KMap<String, HyperLight> lights = new KMap<>();
 	private HyperState state = HyperState.load();
 	private KList<Runnable> queue = new KList<>();
-	private boolean dirtyState = false;
 	private Looper saver;
 	private Looper ticker;
 	private boolean closed = false;
@@ -47,14 +46,8 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 			@Override
 			protected long loop()
 			{
-				if(dirtyState)
-				{
-					dirtyState = false;
-					state.save();
-					L.v("Saved HyperState");
-				}
-
-				return 60000;
+				state.saveIfDirty();
+				return 10000;
 			}
 		};
 		ticker = new Looper()
@@ -161,12 +154,7 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 		}
 
 		closed = true;
-
-		if(dirtyState)
-		{
-			dirtyState = false;
-			state.save();
-		}
+		state.save();
 
 		synchronized (lights)
 		{
@@ -364,13 +352,11 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 			{
 				if(i.getMac().equals(b.getMac()) && i.getIpa().equals(b.getIpa()) && i.getUsr().equals(b.getUsr()))
 				{
-					dirtyState = true;
 					i.setLast(M.ms());
 					return;
 				}
 			}
 
-			dirtyState = true;
 			L.i("Saved Bridge Connection: " + b.getIpa() + " (" + b.getMac() + ")");
 			state.getBridges().add(b);
 		}

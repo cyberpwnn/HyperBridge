@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 
 import lombok.Data;
 import ninja.bytecode.shuriken.collections.KList;
+import ninja.bytecode.shuriken.execution.J;
 import ninja.bytecode.shuriken.io.IO;
 import ninja.bytecode.shuriken.json.JSONObject;
 import ninja.bytecode.shuriken.logging.L;
@@ -16,11 +17,23 @@ public class HyperState
 {
 	private KList<HyperBridgeState> bridges;
 	private KList<HyperGroup> groups;
+	private KList<HyperLight> lights;
+	private boolean dirty;
 
 	public HyperState()
 	{
+		dirty = false;
 		bridges = new KList<>();
 		groups = new KList<>();
+	}
+
+	public void saveIfDirty()
+	{
+		if(dirty)
+		{
+			dirty =  false;
+			J.a(this::save);
+		}
 	}
 
 	public void save()
@@ -28,13 +41,12 @@ public class HyperState
 		File file = new File("state.json");
 		try
 		{
-			L.i("Saved to " + file.getAbsolutePath());
 			file.getParentFile().mkdirs();
 		}
 
 		catch(Throwable e)
 		{
-
+			e.printStackTrace();
 		}
 
 		try
@@ -46,6 +58,7 @@ public class HyperState
 		{
 			L.ex(e);
 		}
+		L.v("Saved HyperState");
 	}
 
 	public static HyperState load()
