@@ -56,6 +56,12 @@ class Network {
       (await get('$url/setgroupname?d={"id":"$id","name":"$name"}'))["type"] ==
       "ok";
 
+  static Future<bool> lockLight(String id) async =>
+      (await get('$url/locklight?d={"id":"$id"}'))["type"] == "ok";
+
+  static Future<bool> unlockLight(String id) async =>
+      (await get('$url/unlocklight?d={"id":"$id"}'))["type"] == "ok";
+
   static Future<bool> removeGroup(String group) async =>
       (await get('$url/removegroup?id=$group'))["type"] == "ok";
 
@@ -109,8 +115,8 @@ class LightPower {
   LightPower();
 
   static LightPower fromJSON(Map<String, dynamic> data) => LightPower()
-    ..wattage = double.tryParse(data["w"]) ?? 0
-    ..wattHours = double.tryParse(data["wh"]) ?? 0;
+    ..wattage = double.tryParse(data["w"].toString()) ?? 0
+    ..wattHours = double.tryParse(data["wh"].toString()) ?? 0;
 }
 
 class GroupData {
@@ -149,6 +155,7 @@ class LightData {
   int a = 0;
   double watts = 0;
   double wattHours = 0;
+  bool locked = false;
 
   LightData();
 
@@ -158,6 +165,7 @@ class LightData {
   static LightData fromJSON(Map<String, dynamic> data) => LightData()
     ..name = data["name"]
     ..id = data["id"]
+    ..locked = data["locked"]
     ..r = int.tryParse(data["r"].toString()) ?? 0
     ..g = int.tryParse(data["g"].toString()) ?? 0
     ..b = int.tryParse(data["b"].toString()) ?? 0

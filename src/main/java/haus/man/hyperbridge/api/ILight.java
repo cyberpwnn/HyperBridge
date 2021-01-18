@@ -13,6 +13,10 @@ public interface ILight extends ILit {
 
     public double getWattage();
 
+    public boolean isLocked();
+
+    public void setLocked(boolean locked);
+
     public double getTotalWattHours();
 
     public default void changeHue(double percent)
@@ -61,4 +65,6 @@ public interface ILight extends ILit {
     }
 
     String getName();
+
+    void setDirty();
 }

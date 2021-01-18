@@ -96,7 +96,34 @@ class _HyperBridgeState extends State<HyperBridge> {
   }
 
   Widget haus(BuildContext context) {
-    return Text("Haus");
+    return FutureBuilder<LightPower>(
+      future: Network.getPower(),
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return Container();
+        }
+
+        return ListView(
+          children: [
+            Center(
+              child: Container(
+                child: Text(
+                  "Hello",
+                  style: TextStyle(fontSize: 42),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.power),
+              title: Text(
+                  "Using " + snap.data.wattage.toInt().toString() + " Watts"),
+              subtitle:
+                  Text("Used " + format(snap.data.wattHours) + " so far."),
+            )
+          ],
+        );
+      },
+    );
   }
 
   Widget more(BuildContext context) {
@@ -126,5 +153,17 @@ class _HyperBridgeState extends State<HyperBridge> {
         ],
       ),
     );
+  }
+
+  String format(double wattHours) {
+    if (wattHours < 1000) {
+      return wattHours.toInt().toString() + " W";
+    }
+
+    if (wattHours / 1000 < 1000) {
+      return (wattHours ~/ 1000).toString() + " kW";
+    }
+
+    return (wattHours / 1000 ~/ 1000).toString() + " gW";
   }
 }

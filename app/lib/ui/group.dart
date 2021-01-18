@@ -75,7 +75,9 @@ class _EditGroupState extends State<EditGroup> {
                 onPressed: () {
                   Widget cancelButton = FlatButton(
                     child: Text("Cancel"),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                   );
                   Widget continueButton = FlatButton(
                     child: Text("Delete Group"),

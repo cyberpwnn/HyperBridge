@@ -32,10 +32,12 @@ public class HyperLight implements ILight
 	private int g;
 	private int b;
 	private int a;
+	private boolean locked;
 
 	public HyperLight(HyperNode bridge, PHLight light)
 	{
 		this.bridge = bridge;
+		locked = false;
 		this.light = light;
 		uuid = light.getUniqueId();
 		dirty = HyperConfig.get().isApplySavedStatesOnStartup();
@@ -58,6 +60,11 @@ public class HyperLight implements ILight
 
 	public boolean push()
 	{
+		if(locked)
+		{
+			return false;
+		}
+
 		if(!dirty)
 		{
 			return false;
@@ -179,6 +186,11 @@ public class HyperLight implements ILight
 		return getLight().getName();
 	}
 
+	@Override
+	public void setDirty() {
+		dirty = true;
+	}
+
 	public HyperLight color(Color c)
 	{
 		return color(c, HyperConfig.get().getDefaultBrightness());
@@ -191,6 +203,10 @@ public class HyperLight implements ILight
 
 	public HyperLight color(Color c, int a, long ms)
 	{
+		if(locked)
+		{
+			return this;
+		}
 		long lt = M.ms() - lastChange;
 		wh += w * ((double) lt / 1000D / 60D / 60D);
 		r = c.getRed();

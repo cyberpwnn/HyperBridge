@@ -89,12 +89,14 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 		HyperGroup g = new HyperGroup();
 		g.setName(name);
 		state.getGroups().add(g);
+		state.setDirty(true);
 		return g;
 	}
 
 	@Override
 	public void deleteGroup(String id) {
 		state.getGroups().removeIf((i) -> i.getId().equals(id));
+		state.setDirty(true);
 	}
 
 	@Override
@@ -108,6 +110,7 @@ public class HyperBridgeServer implements PHSDKListener, ILightHouse
 		{
 			if(i.getId().equals(id))
 			{
+				state.setDirty(true);
 				return i;
 			}
 		}

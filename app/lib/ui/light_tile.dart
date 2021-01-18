@@ -109,6 +109,80 @@ class _LightTileState extends State<LightTile> {
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 24),
                         ),
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: IconButton(
+                          icon: d.locked
+                              ? Icon(Icons.lock_open_rounded, color: Colors.red)
+                              : Icon(Icons.lock_open_rounded),
+                          onPressed: () {
+                            if (!d.locked) {
+                              Widget cancelButton = FlatButton(
+                                child: Text("Cancel"),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              );
+                              Widget continueButton = FlatButton(
+                                child: Text("Lock Light"),
+                                onPressed: () {
+                                  Network.lockLight(widget.light).then((value) {
+                                    Navigator.pop(context);
+                                    setState(() {});
+                                  });
+                                },
+                              );
+                              AlertDialog alert = AlertDialog(
+                                title: Text("Lock Light?"),
+                                content: Text(
+                                    "No one/thing can change this light (including you) until it is unlocked."),
+                                actions: [
+                                  cancelButton,
+                                  continueButton,
+                                ],
+                              );
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return alert;
+                                },
+                              );
+                            } else {
+                              Widget cancelButton = FlatButton(
+                                child: Text("Cancel"),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              );
+                              Widget continueButton = FlatButton(
+                                child: Text("Unlock Light"),
+                                onPressed: () {
+                                  Network.unlockLight(widget.light)
+                                      .then((value) {
+                                    Navigator.pop(context);
+                                    setState(() {});
+                                  });
+                                },
+                              );
+                              AlertDialog alert = AlertDialog(
+                                title: Text("Unlock Light?"),
+                                content: Text(
+                                    "This will allow anyone/thing to change this light's state again."),
+                                actions: [
+                                  cancelButton,
+                                  continueButton,
+                                ],
+                              );
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return alert;
+                                },
+                              );
+                            }
+                          },
+                        ),
                       )
                     ],
                   ),

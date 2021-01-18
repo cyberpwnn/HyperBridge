@@ -13,10 +13,12 @@ public class LightData {
     private int a;
     private double watts;
     private double wattHours;
+    private boolean locked;
 
     public static LightData from(ILight l)
     {
         return LightData.builder()
+                .locked(l.isLocked())
                 .r(l.getColor().getRed())
                 .g(l.getColor().getGreen())
                 .b(l.getColor().getBlue())
