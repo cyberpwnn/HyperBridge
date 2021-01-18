@@ -15,6 +15,7 @@ public class HyperConfig
 {
 	private static HyperConfig cfg;
 	private int bridgeMaxLIOPS = 4;
+	private boolean applySavedStatesOnStartup = false;
 	private int defaultTransitionMS = 10000;
 	private int defaultBrightness = 255;
 

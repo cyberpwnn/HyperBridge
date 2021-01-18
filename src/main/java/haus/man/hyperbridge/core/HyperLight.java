@@ -21,8 +21,8 @@ public class HyperLight implements ILight
 {
 	private transient HyperNode bridge;
 	private transient PHLight light;
-	private transient boolean dirty = false;
-	private transient ChronoLatch saveLatch;
+	private transient boolean dirty;
+	private transient ChronoLatch dirtyLatch;
 	private String uuid;
 	private long lastChange;
 	private long nextTransition;
@@ -38,9 +38,9 @@ public class HyperLight implements ILight
 		this.bridge = bridge;
 		this.light = light;
 		uuid = light.getUniqueId();
-		dirty = false;
+		dirty = HyperConfig.get().isApplySavedStatesOnStartup();
 		nextTransition = HyperConfig.get().getDefaultTransitionMS();
-		saveLatch = new ChronoLatch(10000);
+		dirtyLatch = new ChronoLatch(1250);
 		HyperLight data = tryLoad();
 		lastChange = data.lastChange;
 		wh = data.wh;
@@ -90,12 +90,7 @@ public class HyperLight implements ILight
 			bridge.getBridge().updateLightState(light, state);
 			L.v("Set " + light.getUniqueId() + " to " + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + "+" + a + "@" + nextTransition + "ms");
 		});
-
-		if(saveLatch.flip())
-		{
-			save();
-		}
-
+		save(true);
 		dirty = false;
 		return true;
 	}
