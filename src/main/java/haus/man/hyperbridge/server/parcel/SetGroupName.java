@@ -3,12 +3,9 @@ package haus.man.hyperbridge.server.parcel;
 import haus.man.hyperbridge.api.ILight;
 import haus.man.hyperbridge.api.ILightGroup;
 import haus.man.hyperbridge.api.ILightHouse;
-import ninja.bytecode.shuriken.logging.L;
 import ninja.bytecode.shuriken.web.Parcel;
 import ninja.bytecode.shuriken.web.ParcelRequest;
 import ninja.bytecode.shuriken.web.Parcelable;
-
-import java.awt.*;
 
 @ParcelRequest
 public class SetGroupName extends Parcel {
